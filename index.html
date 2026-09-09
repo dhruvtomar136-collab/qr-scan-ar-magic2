@@ -1,283 +1,836 @@
+```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+  />
+
   <title>Interactive AR Heart</title>
+
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <!-- MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
   <style>
-    * { box-sizing: border-box; touch-action: none; }
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      height: 100%;
-      font-family: -apple-system, Arial, sans-serif;
+    * {
+      box-sizing: border-box;
+      touch-action: none;
     }
 
-    /* Loading overlay while AR / camera initializes */
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, Arial, sans-serif;
+      background: #000;
+    }
+
+    /* -----------------------------
+       LOADING / CAMERA SCREEN
+    ----------------------------- */
     #loading-screen {
       position: fixed;
       inset: 0;
       background: #0b0f14;
-      color: #fff;
+      color: white;
+
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+
       z-index: 1000;
       transition: opacity 0.4s ease;
     }
+
     #loading-screen .spinner {
       width: 40px;
       height: 40px;
+
       border: 4px solid rgba(255,255,255,0.2);
       border-top-color: #ff5566;
       border-radius: 50%;
+
       animation: spin 0.9s linear infinite;
       margin-bottom: 14px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #loading-screen p { font-size: 14px; opacity: 0.8; margin: 4px 0; }
-    #loading-screen.hidden { opacity: 0; pointer-events: none; }
 
-    /* Hint shown once target is found */
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #loading-screen p {
+      font-size: 14px;
+      opacity: 0.8;
+      margin: 4px 0;
+    }
+
+    #loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* -----------------------------
+       ZOOM HINT
+    ----------------------------- */
     #zoom-hint {
       position: fixed;
+
       top: 16px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.6);
-      color: #fff;
+
+      background: rgba(0,0,0,0.65);
+      color: white;
+
       padding: 8px 14px;
       border-radius: 20px;
+
       font-size: 13px;
+      text-align: center;
+
       z-index: 900;
+
       opacity: 0;
       transition: opacity 0.4s ease;
+
       pointer-events: none;
     }
-    #zoom-hint.show { opacity: 1; }
 
-    /* Info popup */
+    #zoom-hint.show {
+      opacity: 1;
+    }
+
+    /* -----------------------------
+       INFORMATION POPUP
+    ----------------------------- */
     #info-popup {
       display: none;
+
       position: fixed;
+
       bottom: 24px;
       left: 50%;
+
       transform: translateX(-50%) translateY(10px);
-      background: rgba(15, 18, 22, 0.92);
+
+      background: rgba(15,18,22,0.94);
       backdrop-filter: blur(6px);
-      color: #fff;
-      padding: 16px 40px 16px 18px;
+
+      color: white;
+
+      padding: 18px 45px 18px 18px;
+
       border-radius: 14px;
-      max-width: 88%;
+
       width: 340px;
+      max-width: 88%;
+
       font-size: 15px;
-      line-height: 1.4;
+      line-height: 1.45;
+
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      z-index: 999;
-      border-left: 4px solid var(--accent, #ff5566);
+
+      z-index: 9999;
+
+      border-left: 4px solid #ff5566;
+
       opacity: 0;
-      transition: opacity 0.25s ease, transform 0.25s ease;
+
+      transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
     }
+
     #info-popup.visible {
       display: block;
       opacity: 1;
+
       transform: translateX(-50%) translateY(0);
     }
+
     #info-title {
+      margin: 0 0 6px 0;
+      font-size: 18px;
       font-weight: 700;
-      margin: 0 0 4px 0;
-      font-size: 15px;
+      color: #ff6677;
     }
+
     #info-text {
       margin: 0;
-      opacity: 0.9;
+      opacity: 0.92;
     }
+
     #close-popup {
       position: absolute;
+
       top: 8px;
       right: 10px;
-      background: none;
+
       border: none;
-      color: #fff;
-      opacity: 0.7;
-      font-size: 18px;
-      line-height: 1;
+      background: none;
+
+      color: white;
+
+      font-size: 20px;
       cursor: pointer;
+
+      opacity: 0.75;
       padding: 4px;
     }
-    #close-popup:hover { opacity: 1; }
+
+    #close-popup:hover {
+      opacity: 1;
+    }
   </style>
 </head>
+
 <body>
 
+  <!-- CAMERA / LOADING SCREEN -->
   <div id="loading-screen">
+
     <div class="spinner"></div>
-    <p id="loading-text">Starting camera…</p>
-    <p style="font-size:12px; opacity:0.5;">Point your camera at the target image</p>
+
+    <p id="loading-text">
+      Starting camera...
+    </p>
+
+    <p style="font-size:12px; opacity:0.5;">
+      Point your camera at the target image
+    </p>
+
   </div>
 
-  <div id="zoom-hint">Pinch with two fingers to zoom the heart</div>
+
+  <!-- ZOOM INSTRUCTION -->
+  <div id="zoom-hint">
+    Pinch with two fingers to zoom the heart
+  </div>
+
+
+  <!-- ============================
+       AR SCENE
+  ============================= -->
 
   <a-scene
-    mindar-image="imageTargetSrc: targets.mind; autoStart: true; uiScanning: yes; uiLoading: no;"
+    mindar-image="
+      imageTargetSrc: targets.mind;
+      autoStart: true;
+      uiScanning: yes;
+      uiLoading: no;
+    "
+
     color-space="sRGB"
-    renderer="colorManagement: true, physicallyCorrectLights: true"
+
+    renderer="
+      colorManagement: true;
+      physicallyCorrectLights: true;
+    "
+
     vr-mode-ui="enabled: false"
+
     device-orientation-permission-ui="enabled: false"
+
     embedded
   >
+
+    <!-- ============================
+         HEART MODEL ASSET
+    ============================= -->
+
     <a-assets>
-      <!-- Replace with your actual model file. Rename it to remove spaces/parentheses,
-           e.g. heart.glb, since raw special characters in filenames can break loading. -->
-      <a-asset-item id="heartModel" src="realistic_human_heart(1).glb"></a-asset-item>
+
+      <a-asset-item
+        id="heartModel"
+        src="realistic_human_heart(1).glb">
+      </a-asset-item>
+
     </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse; fuse: false">
-      <a-entity cursor="fuse: false"
-                raycaster="objects: .clickable; far: 10"
-                position="0 0 -1">
+
+    <!-- ============================
+         CAMERA
+    ============================= -->
+
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false"
+      cursor="rayOrigin: mouse; fuse: false"
+    >
+
+      <a-entity
+        cursor="fuse: false"
+        raycaster="objects: .clickable; far: 10"
+        position="0 0 -1"
+      >
       </a-entity>
+
     </a-camera>
 
-    <a-entity id="target" mindar-image-target="targetIndex: 0">
-      <!-- Wrapper entity: pinch-zoom scales THIS, so the model and hotspots
-           always move together and stay aligned. -->
-      <a-entity id="zoom-wrapper" scale="0.5 0.5 0.5">
-        <a-gltf-model id="heart-model" src="#heartModel" position="0 0 0"></a-gltf-model>
 
-        <a-sphere class="clickable"
+    <!-- ============================
+         IMAGE TARGET
+    ============================= -->
+
+    <a-entity
+      id="target"
+      mindar-image-target="targetIndex: 0"
+    >
+
+      <!--
+        Everything inside this wrapper
+        scales together when zooming.
+      -->
+
+      <a-entity
+        id="zoom-wrapper"
+        scale="0.5 0.5 0.5"
+      >
+
+        <!-- ============================
+             MAIN HEART
+        ============================= -->
+
+        <a-gltf-model
+          id="heart-model"
+          class="clickable"
+
+          src="#heartModel"
+
+          position="0 0 0"
+
+          rotation="0 0 0"
+        >
+        </a-gltf-model>
+
+
+        <!-- ============================
+             RIGHT ATRIUM HOTSPOT
+        ============================= -->
+
+        <a-sphere
+          class="clickable"
+
           data-title="Right Atrium"
-          data-info="Receives deoxygenated blood returning from the body via the vena cava."
-          position="0.3 0.4 0.2" radius="0.05"
-          material="color:#ff5566; opacity:0.6; transparent:true; shader:flat"
-          animation__pulse="property: scale; dir: alternate; dur: 900; loop: true; to: 1.15 1.15 1.15">
+
+          data-info="The right atrium receives deoxygenated blood returning from the body through the vena cava."
+
+          position="0.3 0.4 0.2"
+
+          radius="0.05"
+
+          material="
+            color:#ff5566;
+            opacity:0.7;
+            transparent:true;
+            shader:flat;
+          "
+
+          animation__pulse="
+            property:scale;
+            dir:alternate;
+            dur:900;
+            loop:true;
+            to:1.15 1.15 1.15;
+          "
+        >
         </a-sphere>
 
-        <a-sphere class="clickable"
+
+        <!-- ============================
+             LEFT VENTRICLE HOTSPOT
+        ============================= -->
+
+        <a-sphere
+          class="clickable"
+
           data-title="Left Ventricle"
-          data-info="Pumps oxygenated blood out to the body through the aorta."
-          position="-0.2 0.1 0.3" radius="0.05"
-          material="color:#33aaff; opacity:0.6; transparent:true; shader:flat"
-          animation__pulse="property: scale; dir: alternate; dur: 900; loop: true; to: 1.15 1.15 1.15">
+
+          data-info="The left ventricle pumps oxygenated blood out to the body through the aorta."
+
+          position="-0.2 0.1 0.3"
+
+          radius="0.05"
+
+          material="
+            color:#33aaff;
+            opacity:0.7;
+            transparent:true;
+            shader:flat;
+          "
+
+          animation__pulse="
+            property:scale;
+            dir:alternate;
+            dur:900;
+            loop:true;
+            to:1.15 1.15 1.15;
+          "
+        >
         </a-sphere>
 
-        <a-sphere class="clickable"
+
+        <!-- ============================
+             AORTIC VALVE HOTSPOT
+        ============================= -->
+
+        <a-sphere
+          class="clickable"
+
           data-title="Aortic Valve"
-          data-info="Prevents backflow of blood into the left ventricle."
-          position="0 0.5 0" radius="0.05"
-          material="color:#ffcc00; opacity:0.6; transparent:true; shader:flat"
-          animation__pulse="property: scale; dir: alternate; dur: 900; loop: true; to: 1.15 1.15 1.15">
+
+          data-info="The aortic valve helps prevent blood from flowing backward into the left ventricle."
+
+          position="0 0.5 0"
+
+          radius="0.05"
+
+          material="
+            color:#ffcc00;
+            opacity:0.7;
+            transparent:true;
+            shader:flat;
+          "
+
+          animation__pulse="
+            property:scale;
+            dir:alternate;
+            dur:900;
+            loop:true;
+            to:1.15 1.15 1.15;
+          "
+        >
         </a-sphere>
+
       </a-entity>
+
     </a-entity>
+
   </a-scene>
 
-  <!-- Info popup overlay -->
+
+  <!-- ============================
+       INFORMATION POPUP
+  ============================= -->
+
   <div id="info-popup">
-    <button id="close-popup" aria-label="Close">✕</button>
-    <p id="info-title"></p>
-    <p id="info-text"></p>
+
+    <button
+      id="close-popup"
+      aria-label="Close"
+    >
+      ✕
+    </button>
+
+    <h2 id="info-title">
+      Human Heart
+    </h2>
+
+    <p id="info-text">
+      The human heart is a muscular organ that continuously pumps blood
+      throughout the body.
+    </p>
+
   </div>
 
+
+  <!-- ============================
+       JAVASCRIPT
+  ============================= -->
+
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const sceneEl      = document.querySelector('a-scene');
-      const loadingScreen = document.getElementById('loading-screen');
-      const loadingText   = document.getElementById('loading-text');
-      const zoomHint       = document.getElementById('zoom-hint');
-      const popup          = document.getElementById('info-popup');
-      const infoTitle       = document.getElementById('info-title');
-      const infoText        = document.getElementById('info-text');
-      const closeBtn         = document.getElementById('close-popup');
-      const targetEntity      = document.getElementById('target');
-      const zoomWrapper         = document.getElementById('zoom-wrapper');
 
-      // --- Loading / camera ready ---
-      sceneEl.addEventListener('renderstart', () => {
-        loadingText.textContent = 'Camera ready — scan the target image';
-      });
-      sceneEl.addEventListener('loaded', () => {
-        loadingScreen.classList.add('hidden');
-        setTimeout(() => (loadingScreen.style.display = 'none'), 500);
+    document.addEventListener("DOMContentLoaded", () => {
+
+      /* --------------------------------
+         ELEMENTS
+      -------------------------------- */
+
+      const sceneEl =
+        document.querySelector("a-scene");
+
+      const loadingScreen =
+        document.getElementById("loading-screen");
+
+      const loadingText =
+        document.getElementById("loading-text");
+
+      const zoomHint =
+        document.getElementById("zoom-hint");
+
+      const popup =
+        document.getElementById("info-popup");
+
+      const infoTitle =
+        document.getElementById("info-title");
+
+      const infoText =
+        document.getElementById("info-text");
+
+      const closeBtn =
+        document.getElementById("close-popup");
+
+      const targetEntity =
+        document.getElementById("target");
+
+      const zoomWrapper =
+        document.getElementById("zoom-wrapper");
+
+
+      /* --------------------------------
+         CAMERA START / LOADING
+      -------------------------------- */
+
+      sceneEl.addEventListener("renderstart", () => {
+
+        loadingText.textContent =
+          "Camera ready — scan the target image";
+
       });
 
-      // Fallback: hide loading screen even if 'loaded' never fires (e.g. slow assets)
+
+      sceneEl.addEventListener("loaded", () => {
+
+        loadingScreen.classList.add("hidden");
+
+        setTimeout(() => {
+
+          loadingScreen.style.display = "none";
+
+        }, 500);
+
+      });
+
+
+      /*
+       * Fallback in case loading event
+       * is delayed by the browser.
+       */
+
       setTimeout(() => {
-        loadingScreen.classList.add('hidden');
-        setTimeout(() => (loadingScreen.style.display = 'none'), 500);
+
+        loadingScreen.classList.add("hidden");
+
+        setTimeout(() => {
+
+          loadingScreen.style.display = "none";
+
+        }, 500);
+
       }, 8000);
 
-      // --- Target found / lost ---
-      targetEntity.addEventListener('targetFound', () => {
-        zoomHint.classList.add('show');
-        setTimeout(() => zoomHint.classList.remove('show'), 3000);
-      });
-      targetEntity.addEventListener('targetLost', () => {
-        popup.classList.remove('visible');
-      });
 
-      // --- Hotspot click -> popup ---
-      document.querySelectorAll('.clickable').forEach(el => {
-        el.addEventListener('click', () => {
-          infoTitle.textContent = el.getAttribute('data-title') || '';
-          infoText.textContent  = el.getAttribute('data-info') || '';
-          popup.style.setProperty('--accent', el.getAttribute('material')?.match(/color:\s*(#[0-9a-fA-F]{3,6})/)?.[1] || '#ff5566');
-          popup.classList.add('visible');
-        });
-      });
+      /* --------------------------------
+         TARGET FOUND
+      -------------------------------- */
 
-      closeBtn.addEventListener('click', () => popup.classList.remove('visible'));
+      targetEntity.addEventListener(
+        "targetFound",
+        () => {
 
-      // --- Pinch-to-zoom on the model + hotspots wrapper ---
-      let initialPinchDistance = null;
-      let currentScale = 0.5;   // matches the wrapper's starting scale
-      const MIN_SCALE = 0.15;
-      const MAX_SCALE = 2.5;
+          zoomHint.classList.add("show");
 
-      function getPinchDistance(touches) {
-        const dx = touches[0].clientX - touches[1].clientX;
-        const dy = touches[0].clientY - touches[1].clientY;
-        return Math.sqrt(dx * dx + dy * dy);
+          setTimeout(() => {
+
+            zoomHint.classList.remove("show");
+
+          }, 3000);
+
+        }
+      );
+
+
+      /* --------------------------------
+         TARGET LOST
+      -------------------------------- */
+
+      targetEntity.addEventListener(
+        "targetLost",
+        () => {
+
+          popup.classList.remove("visible");
+
+        }
+      );
+
+
+      /* --------------------------------
+         POPUP FUNCTION
+      -------------------------------- */
+
+      function showInfo(title, text) {
+
+        infoTitle.textContent = title;
+
+        infoText.textContent = text;
+
+        popup.classList.add("visible");
+
       }
 
-      const canvasHolder = sceneEl; // a-scene covers the viewport
 
-      canvasHolder.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-          initialPinchDistance = getPinchDistance(e.touches);
+      /* --------------------------------
+         MAIN HEART CLICK
+      -------------------------------- */
+
+      const heartModel =
+        document.getElementById("heart-model");
+
+
+      heartModel.addEventListener(
+        "click",
+        () => {
+
+          showInfo(
+            "❤️ Human Heart",
+
+            "The human heart is a muscular organ that pumps blood throughout the body. " +
+            "The right side receives deoxygenated blood, while the left side pumps oxygenated blood to the body."
+          );
+
         }
-      }, { passive: true });
+      );
 
-      canvasHolder.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2 && initialPinchDistance) {
-          const newDistance = getPinchDistance(e.touches);
-          const delta = newDistance / initialPinchDistance;
-          let scale = currentScale * delta;
-          scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale));
-          zoomWrapper.setAttribute('scale', `${scale} ${scale} ${scale}`);
+
+      /* --------------------------------
+         HOTSPOT CLICKS
+      -------------------------------- */
+
+      document
+        .querySelectorAll(".clickable")
+        .forEach((element) => {
+
+          /*
+           * Do not show the generic heart
+           * popup again for the hotspot.
+           */
+
+          if (element === heartModel) {
+            return;
+          }
+
+          element.addEventListener(
+            "click",
+            () => {
+
+              const title =
+                element.getAttribute("data-title");
+
+              const info =
+                element.getAttribute("data-info");
+
+              showInfo(title, info);
+
+            }
+          );
+
+        });
+
+
+      /* --------------------------------
+         CLOSE POPUP
+      -------------------------------- */
+
+      closeBtn.addEventListener(
+        "click",
+        (event) => {
+
+          event.stopPropagation();
+
+          popup.classList.remove("visible");
+
         }
-      }, { passive: true });
+      );
 
-      canvasHolder.addEventListener('touchend', (e) => {
-        if (e.touches.length < 2 && initialPinchDistance) {
-          const scaleAttr = zoomWrapper.getAttribute('scale');
-          currentScale = scaleAttr.x; // persist for next pinch gesture
-          initialPinchDistance = null;
-        }
-      }, { passive: true });
 
-      // Optional: desktop testing with mouse wheel
-      canvasHolder.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const delta = e.deltaY > 0 ? 0.95 : 1.05;
-        currentScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, currentScale * delta));
-        zoomWrapper.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-      }, { passive: false });
+      /* ==================================
+         PINCH TO ZOOM
+      ================================== */
+
+      let initialPinchDistance = null;
+
+      let currentScale = 0.5;
+
+      const MIN_SCALE = 0.15;
+
+      const MAX_SCALE = 2.5;
+
+
+      /* --------------------------------
+         TOUCH DISTANCE
+      -------------------------------- */
+
+      function getPinchDistance(touches) {
+
+        const dx =
+          touches[0].clientX -
+          touches[1].clientX;
+
+        const dy =
+          touches[0].clientY -
+          touches[1].clientY;
+
+        return Math.sqrt(
+          dx * dx + dy * dy
+        );
+
+      }
+
+
+      /* --------------------------------
+         TOUCH START
+      -------------------------------- */
+
+      sceneEl.addEventListener(
+        "touchstart",
+        (event) => {
+
+          if (event.touches.length === 2) {
+
+            initialPinchDistance =
+              getPinchDistance(event.touches);
+
+          }
+
+        },
+        { passive: true }
+      );
+
+
+      /* --------------------------------
+         TOUCH MOVE
+      -------------------------------- */
+
+      sceneEl.addEventListener(
+        "touchmove",
+        (event) => {
+
+          if (
+            event.touches.length === 2 &&
+            initialPinchDistance
+          ) {
+
+            const newDistance =
+              getPinchDistance(event.touches);
+
+            const ratio =
+              newDistance /
+              initialPinchDistance;
+
+            let newScale =
+              currentScale * ratio;
+
+
+            /* Limit zoom */
+
+            newScale =
+              Math.min(
+                MAX_SCALE,
+                Math.max(
+                  MIN_SCALE,
+                  newScale
+                )
+              );
+
+
+            /* Apply zoom */
+
+            zoomWrapper.setAttribute(
+              "scale",
+              `${newScale} ${newScale} ${newScale}`
+            );
+
+          }
+
+        },
+        { passive: true }
+      );
+
+
+      /* --------------------------------
+         TOUCH END
+      -------------------------------- */
+
+      sceneEl.addEventListener(
+        "touchend",
+        (event) => {
+
+          if (
+            event.touches.length < 2 &&
+            initialPinchDistance
+          ) {
+
+            const scale =
+              zoomWrapper.getAttribute("scale");
+
+            if (scale) {
+
+              currentScale =
+                scale.x;
+
+            }
+
+            initialPinchDistance =
+              null;
+
+          }
+
+        },
+        { passive: true }
+      );
+
+
+      /* ==================================
+         DESKTOP MOUSE WHEEL ZOOM
+      ================================== */
+
+      sceneEl.addEventListener(
+        "wheel",
+        (event) => {
+
+          event.preventDefault();
+
+          const zoomFactor =
+            event.deltaY > 0
+              ? 0.95
+              : 1.05;
+
+
+          currentScale =
+            Math.min(
+              MAX_SCALE,
+              Math.max(
+                MIN_SCALE,
+                currentScale * zoomFactor
+              )
+            );
+
+
+          zoomWrapper.setAttribute(
+            "scale",
+            `${currentScale} ${currentScale} ${currentScale}`
+          );
+
+        },
+        { passive: false }
+      );
+
     });
+
   </script>
+
 </body>
 </html>
+```
