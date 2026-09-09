@@ -1,6 +1,7 @@
 ```html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
 
@@ -11,10 +12,18 @@
 
   <title>Interactive AR Heart</title>
 
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <!-- MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
+
+    /* =====================================================
+       BASIC PAGE
+    ===================================================== */
+
     * {
       box-sizing: border-box;
       touch-action: none;
@@ -27,237 +36,461 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
+      background: transparent;
       font-family: Arial, sans-serif;
     }
 
-    /* LOADING SCREEN */
+
+    /* =====================================================
+       IMPORTANT CAMERA / AR FIX
+       Keep camera video behind the A-Frame canvas
+    ===================================================== */
+
+    video {
+      position: fixed !important;
+
+      top: 0 !important;
+      left: 0 !important;
+
+      width: 100% !important;
+      height: 100% !important;
+
+      object-fit: cover !important;
+
+      z-index: 0 !important;
+
+      display: block !important;
+    }
+
+
+    a-scene {
+      position: fixed !important;
+
+      top: 0 !important;
+      left: 0 !important;
+
+      width: 100% !important;
+      height: 100% !important;
+
+      margin: 0 !important;
+      padding: 0 !important;
+
+      z-index: 1 !important;
+
+      background: transparent !important;
+    }
+
+
+    canvas {
+      background: transparent !important;
+    }
+
+
+    /* =====================================================
+       LOADING SCREEN
+    ===================================================== */
+
     #loading-screen {
       position: fixed;
+
       inset: 0;
+
       background: #0b0f14;
+
       color: white;
+
       display: flex;
+
       flex-direction: column;
+
       align-items: center;
+
       justify-content: center;
-      z-index: 1000;
+
+      z-index: 10000;
+
       transition: opacity 0.4s ease;
     }
 
+
     #loading-screen .spinner {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
+
       border: 4px solid rgba(255,255,255,0.2);
+
       border-top-color: #ff5566;
+
       border-radius: 50%;
+
       animation: spin 0.9s linear infinite;
+
       margin-bottom: 14px;
     }
 
+
     @keyframes spin {
+
       to {
         transform: rotate(360deg);
       }
+
     }
+
 
     #loading-screen p {
       font-size: 14px;
-      opacity: 0.8;
+
+      opacity: 0.85;
+
       margin: 4px 0;
+
+      text-align: center;
     }
+
 
     #loading-screen.hidden {
+
       opacity: 0;
+
       pointer-events: none;
     }
 
-    /* HELP TEXT */
+
+    /* =====================================================
+       CONTROL HINT
+    ===================================================== */
+
     #control-hint {
+
       position: fixed;
+
       top: 16px;
+
       left: 50%;
+
       transform: translateX(-50%);
+
       background: rgba(0,0,0,0.70);
+
       color: white;
-      padding: 9px 15px;
-      border-radius: 20px;
+
+      padding: 9px 16px;
+
+      border-radius: 22px;
+
       font-size: 13px;
+
       text-align: center;
-      z-index: 900;
+
+      z-index: 9000;
+
       opacity: 0;
+
       transition: opacity 0.4s ease;
+
       pointer-events: none;
+
       white-space: nowrap;
     }
 
+
     #control-hint.show {
+
       opacity: 1;
     }
 
-    /* INFO POPUP */
+
+    /* =====================================================
+       INFORMATION POPUP
+    ===================================================== */
+
     #info-popup {
+
       display: none;
+
       position: fixed;
+
       bottom: 24px;
+
       left: 50%;
+
       transform: translateX(-50%) translateY(10px);
-      background: rgba(15,18,22,0.94);
-      backdrop-filter: blur(6px);
+
+      background: rgba(15,18,22,0.95);
+
+      backdrop-filter: blur(8px);
+
       color: white;
-      padding: 18px 45px 18px 18px;
-      border-radius: 14px;
+
+      padding: 18px 46px 18px 18px;
+
+      border-radius: 15px;
+
       width: 350px;
+
       max-width: 88%;
+
       font-size: 15px;
-      line-height: 1.45;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+
+      line-height: 1.5;
+
+      box-shadow:
+        0 8px 25px rgba(0,0,0,0.45);
+
       z-index: 9999;
+
       border-left: 4px solid #ff5566;
+
       opacity: 0;
-      transition: opacity 0.25s ease, transform 0.25s ease;
+
+      transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
     }
+
 
     #info-popup.visible {
+
       display: block;
+
       opacity: 1;
-      transform: translateX(-50%) translateY(0);
+
+      transform:
+        translateX(-50%)
+        translateY(0);
     }
 
+
     #info-title {
-      margin: 0 0 6px 0;
+
+      margin: 0 0 7px 0;
+
       font-size: 18px;
-      font-weight: 700;
+
+      font-weight: bold;
+
       color: #ff6677;
     }
 
+
     #info-text {
+
       margin: 0;
-      opacity: 0.92;
+
+      opacity: 0.94;
     }
 
+
     #close-popup {
+
       position: absolute;
+
       top: 8px;
+
       right: 10px;
+
       border: none;
-      background: none;
+
+      background: transparent;
+
       color: white;
-      font-size: 20px;
+
+      font-size: 21px;
+
       cursor: pointer;
+
       opacity: 0.75;
+
       padding: 4px;
     }
 
+
     #close-popup:hover {
+
       opacity: 1;
     }
+
   </style>
 </head>
 
+
 <body>
 
-  <!-- Loading screen -->
+
+  <!-- =====================================================
+       LOADING / CAMERA SCREEN
+  ====================================================== -->
+
   <div id="loading-screen">
+
     <div class="spinner"></div>
 
     <p id="loading-text">
       Starting camera...
     </p>
 
-    <p style="font-size:12px; opacity:0.5;">
-      Point your camera at the target image
+    <p style="font-size:12px; opacity:0.55;">
+      Allow camera access and point at the target image
     </p>
+
   </div>
 
 
-  <!-- Controls hint -->
+  <!-- =====================================================
+       USER CONTROLS
+  ====================================================== -->
+
   <div id="control-hint">
     Drag = Rotate • Pinch = Zoom • Tap = Learn
   </div>
 
 
-  <!-- AR SCENE -->
+  <!-- =====================================================
+       AR SCENE
+  ====================================================== -->
+
   <a-scene
+
     mindar-image="
       imageTargetSrc: targets.mind;
       autoStart: true;
       uiScanning: yes;
       uiLoading: no;
     "
+
     color-space="sRGB"
-    renderer="colorManagement: true, physicallyCorrectLights: true"
+
+    renderer="
+      alpha: true;
+      colorManagement: true;
+      physicallyCorrectLights: true;
+      antialias: true;
+    "
+
     vr-mode-ui="enabled: false"
+
     device-orientation-permission-ui="enabled: false"
+
     embedded
   >
 
-    <!-- MODEL ASSET -->
+
+    <!-- =================================================
+         HEART MODEL
+    ================================================== -->
+
     <a-assets>
+
       <a-asset-item
         id="heartModel"
         src="realistic_human_heart(2).glb">
       </a-asset-item>
+
     </a-assets>
 
 
-    <!-- CAMERA -->
+    <!-- =================================================
+         CAMERA
+    ================================================== -->
+
     <a-camera
+
       position="0 0 0"
+
       look-controls="enabled: false"
+
       cursor="rayOrigin: mouse; fuse: false"
     >
 
       <a-entity
+
         cursor="fuse: false"
-        raycaster="objects: .clickable; far: 10"
+
+        raycaster="
+          objects: .clickable;
+          far: 10;
+        "
+
         position="0 0 -1"
-      ></a-entity>
+      >
+      </a-entity>
 
     </a-camera>
 
 
-    <!-- TARGET -->
+    <!-- =================================================
+         TARGET IMAGE
+    ================================================== -->
+
     <a-entity
+
       id="target"
+
       mindar-image-target="targetIndex: 0"
     >
 
-      <!--
-        This wrapper controls both:
-        1. Zoom
-        2. Rotation
 
-        Heart + hotspots stay together.
-      -->
+      <!-- =================================================
+           HEART WRAPPER
+           Rotation + Zoom
+      ================================================== -->
 
       <a-entity
+
         id="heart-wrapper"
+
         scale="0.5 0.5 0.5"
+
         rotation="0 0 0"
       >
 
-        <!-- MAIN HEART -->
+
+        <!-- =============================================
+             MAIN HEART
+        ============================================== -->
+
         <a-gltf-model
+
           id="heart-model"
+
           class="clickable"
+
           src="#heartModel"
+
           position="0 0 0"
-        ></a-gltf-model>
+
+          rotation="0 0 0"
+        >
+        </a-gltf-model>
 
 
-        <!-- RIGHT ATRIUM -->
+        <!-- =============================================
+             RIGHT ATRIUM
+        ============================================== -->
+
         <a-sphere
+
           class="clickable hotspot"
+
           data-title="Right Atrium"
-          data-info="The right atrium receives deoxygenated blood returning from the body through the vena cava."
+
+          data-info="
+          The right atrium receives deoxygenated blood
+          returning from the body through the vena cava.
+          "
+
           position="0.3 0.4 0.2"
+
           radius="0.05"
+
           material="
             color:#ff5566;
             opacity:0.75;
             transparent:true;
             shader:flat;
           "
+
           animation__pulse="
             property:scale;
             dir:alternate;
@@ -265,22 +498,36 @@
             loop:true;
             to:1.15 1.15 1.15;
           "
-        ></a-sphere>
+        >
+        </a-sphere>
 
 
-        <!-- LEFT VENTRICLE -->
+        <!-- =============================================
+             LEFT VENTRICLE
+        ============================================== -->
+
         <a-sphere
+
           class="clickable hotspot"
+
           data-title="Left Ventricle"
-          data-info="The left ventricle pumps oxygenated blood out to the body through the aorta."
+
+          data-info="
+          The left ventricle pumps oxygenated blood
+          out to the body through the aorta.
+          "
+
           position="-0.2 0.1 0.3"
+
           radius="0.05"
+
           material="
             color:#33aaff;
             opacity:0.75;
             transparent:true;
             shader:flat;
           "
+
           animation__pulse="
             property:scale;
             dir:alternate;
@@ -288,22 +535,36 @@
             loop:true;
             to:1.15 1.15 1.15;
           "
-        ></a-sphere>
+        >
+        </a-sphere>
 
 
-        <!-- AORTIC VALVE -->
+        <!-- =============================================
+             AORTIC VALVE
+        ============================================== -->
+
         <a-sphere
+
           class="clickable hotspot"
+
           data-title="Aortic Valve"
-          data-info="The aortic valve helps prevent blood from flowing backward into the left ventricle."
+
+          data-info="
+          The aortic valve helps prevent blood from
+          flowing backward into the left ventricle.
+          "
+
           position="0 0.5 0"
+
           radius="0.05"
+
           material="
             color:#ffcc00;
             opacity:0.75;
             transparent:true;
             shader:flat;
           "
+
           animation__pulse="
             property:scale;
             dir:alternate;
@@ -311,7 +572,9 @@
             loop:true;
             to:1.15 1.15 1.15;
           "
-        ></a-sphere>
+        >
+        </a-sphere>
+
 
       </a-entity>
 
@@ -320,313 +583,634 @@
   </a-scene>
 
 
-  <!-- INFORMATION POPUP -->
+  <!-- =====================================================
+       INFORMATION POPUP
+  ====================================================== -->
+
   <div id="info-popup">
 
-    <button id="close-popup" aria-label="Close">
+    <button
+      id="close-popup"
+      aria-label="Close"
+    >
       ✕
     </button>
+
 
     <h2 id="info-title">
       Human Heart
     </h2>
 
+
     <p id="info-text">
-      The human heart is a muscular organ that continuously pumps blood
-      throughout the body.
+      The human heart is a muscular organ that pumps
+      blood throughout the body.
     </p>
 
   </div>
 
 
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
+
   <script>
 
-    document.addEventListener("DOMContentLoaded", () => {
-
-      /* ---------------------------------
-         ELEMENTS
-      --------------------------------- */
-
-      const sceneEl =
-        document.querySelector("a-scene");
-
-      const loadingScreen =
-        document.getElementById("loading-screen");
-
-      const loadingText =
-        document.getElementById("loading-text");
-
-      const controlHint =
-        document.getElementById("control-hint");
-
-      const popup =
-        document.getElementById("info-popup");
-
-      const infoTitle =
-        document.getElementById("info-title");
-
-      const infoText =
-        document.getElementById("info-text");
-
-      const closeBtn =
-        document.getElementById("close-popup");
-
-      const targetEntity =
-        document.getElementById("target");
-
-      const heartWrapper =
-        document.getElementById("heart-wrapper");
-
-      const heartModel =
-        document.getElementById("heart-model");
+    document.addEventListener(
+      "DOMContentLoaded",
+      () => {
 
 
-      /* =================================
-         CAMERA / LOADING
-      ================================= */
+        /* =================================================
+           GET ELEMENTS
+        ================================================= */
 
-      sceneEl.addEventListener("renderstart", () => {
+        const sceneEl =
+          document.querySelector("a-scene");
 
-        loadingText.textContent =
-          "Camera ready — scan the target image";
+        const loadingScreen =
+          document.getElementById("loading-screen");
 
-      });
+        const loadingText =
+          document.getElementById("loading-text");
 
+        const controlHint =
+          document.getElementById("control-hint");
 
-      sceneEl.addEventListener("loaded", () => {
+        const popup =
+          document.getElementById("info-popup");
 
-        loadingScreen.classList.add("hidden");
+        const infoTitle =
+          document.getElementById("info-title");
 
-        setTimeout(() => {
-          loadingScreen.style.display = "none";
-        }, 500);
+        const infoText =
+          document.getElementById("info-text");
 
-      });
+        const closeBtn =
+          document.getElementById("close-popup");
 
+        const targetEntity =
+          document.getElementById("target");
 
-      /* Fallback */
-      setTimeout(() => {
+        const heartWrapper =
+          document.getElementById("heart-wrapper");
 
-        loadingScreen.classList.add("hidden");
-
-        setTimeout(() => {
-          loadingScreen.style.display = "none";
-        }, 500);
-
-      }, 8000);
-
-
-      /* =================================
-         TARGET FOUND
-      ================================= */
-
-      targetEntity.addEventListener(
-        "targetFound",
-        () => {
-
-          controlHint.classList.add("show");
-
-          setTimeout(() => {
-            controlHint.classList.remove("show");
-          }, 4000);
-
-        }
-      );
+        const heartModel =
+          document.getElementById("heart-model");
 
 
-      /* =================================
-         TARGET LOST
-      ================================= */
+        /* =================================================
+           CAMERA START
+        ================================================= */
 
-      targetEntity.addEventListener(
-        "targetLost",
-        () => {
+        sceneEl.addEventListener(
+          "renderstart",
+          () => {
 
-          popup.classList.remove("visible");
+            loadingText.textContent =
+              "Camera ready — scan the target image";
 
-        }
-      );
-
-
-      /* =================================
-         INFORMATION POPUP
-      ================================= */
-
-      function showInfo(title, text) {
-
-        infoTitle.textContent = title;
-        infoText.textContent = text;
-
-        popup.classList.add("visible");
-
-      }
+          }
+        );
 
 
-      /* ---------------------------------
-         TAP HEART
-      --------------------------------- */
+        /* =================================================
+           AR LOADED
+        ================================================= */
 
-      heartModel.addEventListener(
-        "click",
-        () => {
+        sceneEl.addEventListener(
+          "loaded",
+          () => {
 
-          showInfo(
-            "❤️ Human Heart",
-            "The human heart is a muscular organ that pumps blood throughout the body. The right side receives deoxygenated blood, while the left side pumps oxygenated blood to the body."
+            loadingScreen.classList.add(
+              "hidden"
+            );
+
+            setTimeout(
+              () => {
+
+                loadingScreen.style.display =
+                  "none";
+
+              },
+              500
+            );
+
+          }
+        );
+
+
+        /* =================================================
+           FALLBACK
+        ================================================= */
+
+        setTimeout(
+          () => {
+
+            loadingScreen.classList.add(
+              "hidden"
+            );
+
+            setTimeout(
+              () => {
+
+                loadingScreen.style.display =
+                  "none";
+
+              },
+              500
+            );
+
+          },
+          8000
+        );
+
+
+        /* =================================================
+           TARGET FOUND
+        ================================================= */
+
+        targetEntity.addEventListener(
+          "targetFound",
+          () => {
+
+            controlHint.classList.add(
+              "show"
+            );
+
+            setTimeout(
+              () => {
+
+                controlHint.classList.remove(
+                  "show"
+                );
+
+              },
+              4000
+            );
+
+          }
+        );
+
+
+        /* =================================================
+           TARGET LOST
+        ================================================= */
+
+        targetEntity.addEventListener(
+          "targetLost",
+          () => {
+
+            popup.classList.remove(
+              "visible"
+            );
+
+          }
+        );
+
+
+        /* =================================================
+           POPUP FUNCTION
+        ================================================= */
+
+        function showInfo(
+          title,
+          text
+        ) {
+
+          infoTitle.textContent =
+            title;
+
+          infoText.textContent =
+            text.trim();
+
+          popup.classList.add(
+            "visible"
           );
 
         }
-      );
 
 
-      /* ---------------------------------
-         TAP HOTSPOTS
-      --------------------------------- */
+        /* =================================================
+           TAP MAIN HEART
+        ================================================= */
 
-      document
-        .querySelectorAll(".hotspot")
-        .forEach((hotspot) => {
+        heartModel.addEventListener(
+          "click",
+          () => {
 
-          hotspot.addEventListener(
-            "click",
-            () => {
+            showInfo(
+              "❤️ Human Heart",
 
-              const title =
-                hotspot.getAttribute("data-title");
+              "The human heart is a muscular organ " +
+              "that pumps blood throughout the body. " +
+              "The right side receives deoxygenated " +
+              "blood, while the left side pumps " +
+              "oxygenated blood to the body."
+            );
 
-              const info =
-                hotspot.getAttribute("data-info");
+          }
+        );
 
-              showInfo(title, info);
+
+        /* =================================================
+           TAP HOTSPOTS
+        ================================================= */
+
+        document
+          .querySelectorAll(".hotspot")
+          .forEach(
+            (hotspot) => {
+
+              hotspot.addEventListener(
+                "click",
+                () => {
+
+                  const title =
+                    hotspot.getAttribute(
+                      "data-title"
+                    );
+
+                  const info =
+                    hotspot.getAttribute(
+                      "data-info"
+                    );
+
+                  showInfo(
+                    title,
+                    info
+                  );
+
+                }
+              );
 
             }
           );
 
-        });
 
+        /* =================================================
+           CLOSE POPUP
+        ================================================= */
 
-      /* ---------------------------------
-         CLOSE POPUP
-      --------------------------------- */
+        closeBtn.addEventListener(
+          "click",
+          (event) => {
 
-      closeBtn.addEventListener(
-        "click",
-        (event) => {
+            event.stopPropagation();
 
-          event.stopPropagation();
-
-          popup.classList.remove("visible");
-
-        }
-      );
-
-
-      /* =================================
-         ROTATION
-      ================================= */
-
-      let rotating = false;
-
-      let lastX = 0;
-      let lastY = 0;
-
-      let rotationX = 0;
-      let rotationY = 0;
-
-
-      /*
-       * Limits how far the model can tilt
-       * vertically.
-       */
-
-      const MIN_ROTATION_X = -60;
-      const MAX_ROTATION_X = 60;
-
-
-      /* ---------------------------------
-         TOUCH START
-      --------------------------------- */
-
-      sceneEl.addEventListener(
-        "touchstart",
-        (event) => {
-
-          /*
-           * One finger = rotation
-           * Two fingers = zoom
-           */
-
-          if (event.touches.length === 1) {
-
-            rotating = true;
-
-            lastX =
-              event.touches[0].clientX;
-
-            lastY =
-              event.touches[0].clientY;
+            popup.classList.remove(
+              "visible"
+            );
 
           }
-
-        },
-        { passive: true }
-      );
+        );
 
 
-      /* ---------------------------------
-         TOUCH MOVE
-      --------------------------------- */
+        /* =================================================
+           ROTATION
+        ================================================= */
 
-      sceneEl.addEventListener(
-        "touchmove",
-        (event) => {
+        let rotating = false;
 
-          /*
-           * Rotate with one finger
-           */
+        let lastX = 0;
+        let lastY = 0;
 
-          if (
-            rotating &&
-            event.touches.length === 1
-          ) {
+        let rotationX = 0;
+        let rotationY = 0;
 
-            const currentX =
-              event.touches[0].clientX;
 
-            const currentY =
-              event.touches[0].clientY;
+        const MIN_ROTATION_X = -60;
+        const MAX_ROTATION_X = 60;
+
+
+        /* =================================================
+           ONE FINGER START
+        ================================================= */
+
+        sceneEl.addEventListener(
+          "touchstart",
+          (event) => {
+
+            if (
+              event.touches.length === 1
+            ) {
+
+              rotating = true;
+
+              lastX =
+                event.touches[0].clientX;
+
+              lastY =
+                event.touches[0].clientY;
+
+            }
+
+          },
+          {
+            passive: true
+          }
+        );
+
+
+        /* =================================================
+           ONE FINGER MOVE = ROTATE
+        ================================================= */
+
+        sceneEl.addEventListener(
+          "touchmove",
+          (event) => {
+
+            if (
+              rotating &&
+              event.touches.length === 1
+            ) {
+
+              const currentX =
+                event.touches[0].clientX;
+
+              const currentY =
+                event.touches[0].clientY;
+
+
+              const deltaX =
+                currentX - lastX;
+
+              const deltaY =
+                currentY - lastY;
+
+
+              rotationY +=
+                deltaX * 0.6;
+
+              rotationX -=
+                deltaY * 0.6;
+
+
+              rotationX =
+                Math.max(
+                  MIN_ROTATION_X,
+
+                  Math.min(
+                    MAX_ROTATION_X,
+                    rotationX
+                  )
+                );
+
+
+              heartWrapper.setAttribute(
+                "rotation",
+
+                `${rotationX} ${rotationY} 0`
+              );
+
+
+              lastX = currentX;
+
+              lastY = currentY;
+
+            }
+
+          },
+          {
+            passive: true
+          }
+        );
+
+
+        /* =================================================
+           TOUCH END
+        ================================================= */
+
+        sceneEl.addEventListener(
+          "touchend",
+          () => {
+
+            rotating = false;
+
+          },
+          {
+            passive: true
+          }
+        );
+
+
+        /* =================================================
+           PINCH ZOOM
+        ================================================= */
+
+        let initialPinchDistance =
+          null;
+
+        let currentScale =
+          0.5;
+
+
+        const MIN_SCALE =
+          0.15;
+
+        const MAX_SCALE =
+          2.5;
+
+
+        function getPinchDistance(
+          touches
+        ) {
+
+          const dx =
+            touches[0].clientX -
+            touches[1].clientX;
+
+          const dy =
+            touches[0].clientY -
+            touches[1].clientY;
+
+
+          return Math.sqrt(
+            dx * dx + dy * dy
+          );
+
+        }
+
+
+        /* =================================================
+           TWO FINGER START
+        ================================================= */
+
+        sceneEl.addEventListener(
+          "touchstart",
+          (event) => {
+
+            if (
+              event.touches.length === 2
+            ) {
+
+              initialPinchDistance =
+                getPinchDistance(
+                  event.touches
+                );
+
+            }
+
+          },
+          {
+            passive: true
+          }
+        );
+
+
+        /* =================================================
+           TWO FINGER MOVE = ZOOM
+        ================================================= */
+
+        sceneEl.addEventListener(
+          "touchmove",
+          (event) => {
+
+            if (
+              event.touches.length === 2 &&
+              initialPinchDistance
+            ) {
+
+              const newDistance =
+                getPinchDistance(
+                  event.touches
+                );
+
+
+              const ratio =
+                newDistance /
+                initialPinchDistance;
+
+
+              let newScale =
+                currentScale * ratio;
+
+
+              newScale =
+                Math.min(
+                  MAX_SCALE,
+
+                  Math.max(
+                    MIN_SCALE,
+                    newScale
+                  )
+                );
+
+
+              heartWrapper.setAttribute(
+                "scale",
+
+                `${newScale} ${newScale} ${newScale}`
+              );
+
+            }
+
+          },
+          {
+            passive: true
+          }
+        );
+
+
+        /* =================================================
+           PINCH END
+        ================================================= */
+
+        sceneEl.addEventListener(
+          "touchend",
+          (event) => {
+
+            if (
+              event.touches.length < 2 &&
+              initialPinchDistance
+            ) {
+
+              const scale =
+                heartWrapper.getAttribute(
+                  "scale"
+                );
+
+
+              if (scale) {
+
+                currentScale =
+                  scale.x;
+
+              }
+
+
+              initialPinchDistance =
+                null;
+
+            }
+
+          },
+          {
+            passive: true
+          }
+        );
+
+
+        /* =================================================
+           DESKTOP MOUSE ROTATION
+        ================================================= */
+
+        let mouseDown =
+          false;
+
+        let mouseX =
+          0;
+
+        let mouseY =
+          0;
+
+
+        sceneEl.addEventListener(
+          "mousedown",
+          (event) => {
+
+            mouseDown =
+              true;
+
+            mouseX =
+              event.clientX;
+
+            mouseY =
+              event.clientY;
+
+          }
+        );
+
+
+        sceneEl.addEventListener(
+          "mousemove",
+          (event) => {
+
+            if (!mouseDown) {
+              return;
+            }
 
 
             const deltaX =
-              currentX - lastX;
+              event.clientX -
+              mouseX;
 
             const deltaY =
-              currentY - lastY;
+              event.clientY -
+              mouseY;
 
 
-            /*
-             * Horizontal movement rotates
-             * around the Y axis.
-             */
+            rotationY +=
+              deltaX * 0.6;
 
-            rotationY += deltaX * 0.6;
+            rotationX -=
+              deltaY * 0.6;
 
-
-            /*
-             * Vertical movement rotates
-             * around the X axis.
-             */
-
-            rotationX -= deltaY * 0.6;
-
-
-            /*
-             * Limit vertical rotation.
-             */
 
             rotationX =
               Math.max(
                 MIN_ROTATION_X,
+
                 Math.min(
                   MAX_ROTATION_X,
                   rotationX
@@ -636,270 +1220,74 @@
 
             heartWrapper.setAttribute(
               "rotation",
+
               `${rotationX} ${rotationY} 0`
             );
 
 
-            lastX = currentX;
-            lastY = currentY;
+            mouseX =
+              event.clientX;
+
+            mouseY =
+              event.clientY;
 
           }
-
-        },
-        { passive: true }
-      );
-
-
-      /* ---------------------------------
-         TOUCH END
-      --------------------------------- */
-
-      sceneEl.addEventListener(
-        "touchend",
-        () => {
-
-          rotating = false;
-
-        },
-        { passive: true }
-      );
-
-
-      /* =================================
-         PINCH ZOOM
-      ================================= */
-
-      let initialPinchDistance = null;
-
-      let currentScale = 0.5;
-
-      const MIN_SCALE = 0.15;
-      const MAX_SCALE = 2.5;
-
-
-      /* Distance between fingers */
-
-      function getPinchDistance(touches) {
-
-        const dx =
-          touches[0].clientX -
-          touches[1].clientX;
-
-        const dy =
-          touches[0].clientY -
-          touches[1].clientY;
-
-        return Math.sqrt(
-          dx * dx + dy * dy
         );
 
-      }
 
+        window.addEventListener(
+          "mouseup",
+          () => {
 
-      /* ---------------------------------
-         PINCH START
-      --------------------------------- */
-
-      sceneEl.addEventListener(
-        "touchstart",
-        (event) => {
-
-          if (event.touches.length === 2) {
-
-            initialPinchDistance =
-              getPinchDistance(event.touches);
+            mouseDown =
+              false;
 
           }
-
-        },
-        { passive: true }
-      );
+        );
 
 
-      /* ---------------------------------
-         PINCH MOVE
-      --------------------------------- */
+        /* =================================================
+           DESKTOP MOUSE WHEEL ZOOM
+        ================================================= */
 
-      sceneEl.addEventListener(
-        "touchmove",
-        (event) => {
+        sceneEl.addEventListener(
+          "wheel",
+          (event) => {
 
-          if (
-            event.touches.length === 2 &&
-            initialPinchDistance
-          ) {
-
-            const newDistance =
-              getPinchDistance(event.touches);
-
-            const ratio =
-              newDistance /
-              initialPinchDistance;
+            event.preventDefault();
 
 
-            let newScale =
-              currentScale * ratio;
+            const factor =
+              event.deltaY > 0
+                ? 0.95
+                : 1.05;
 
 
-            newScale =
+            currentScale =
               Math.min(
                 MAX_SCALE,
+
                 Math.max(
                   MIN_SCALE,
-                  newScale
+                  currentScale * factor
                 )
               );
 
 
             heartWrapper.setAttribute(
               "scale",
-              `${newScale} ${newScale} ${newScale}`
+
+              `${currentScale} ${currentScale} ${currentScale}`
             );
 
+          },
+          {
+            passive: false
           }
+        );
 
-        },
-        { passive: true }
-      );
-
-
-      /* ---------------------------------
-         PINCH END
-      --------------------------------- */
-
-      sceneEl.addEventListener(
-        "touchend",
-        (event) => {
-
-          if (
-            event.touches.length < 2 &&
-            initialPinchDistance
-          ) {
-
-            const scale =
-              heartWrapper.getAttribute("scale");
-
-            if (scale) {
-              currentScale = scale.x;
-            }
-
-            initialPinchDistance = null;
-
-          }
-
-        },
-        { passive: true }
-      );
-
-
-      /* =================================
-         DESKTOP MOUSE ROTATION
-      ================================= */
-
-      let mouseDown = false;
-
-      let mouseX = 0;
-      let mouseY = 0;
-
-
-      sceneEl.addEventListener(
-        "mousedown",
-        (event) => {
-
-          mouseDown = true;
-
-          mouseX = event.clientX;
-          mouseY = event.clientY;
-
-        }
-      );
-
-
-      sceneEl.addEventListener(
-        "mousemove",
-        (event) => {
-
-          if (!mouseDown) return;
-
-
-          const deltaX =
-            event.clientX - mouseX;
-
-          const deltaY =
-            event.clientY - mouseY;
-
-
-          rotationY += deltaX * 0.6;
-          rotationX -= deltaY * 0.6;
-
-
-          rotationX =
-            Math.max(
-              MIN_ROTATION_X,
-              Math.min(
-                MAX_ROTATION_X,
-                rotationX
-              )
-            );
-
-
-          heartWrapper.setAttribute(
-            "rotation",
-            `${rotationX} ${rotationY} 0`
-          );
-
-
-          mouseX = event.clientX;
-          mouseY = event.clientY;
-
-        }
-      );
-
-
-      window.addEventListener(
-        "mouseup",
-        () => {
-          mouseDown = false;
-        }
-      );
-
-
-      /* =================================
-         DESKTOP MOUSE-WHEEL ZOOM
-      ================================= */
-
-      sceneEl.addEventListener(
-        "wheel",
-        (event) => {
-
-          event.preventDefault();
-
-          const factor =
-            event.deltaY > 0
-              ? 0.95
-              : 1.05;
-
-
-          currentScale =
-            Math.min(
-              MAX_SCALE,
-              Math.max(
-                MIN_SCALE,
-                currentScale * factor
-              )
-            );
-
-
-          heartWrapper.setAttribute(
-            "scale",
-            `${currentScale} ${currentScale} ${currentScale}`
-          );
-
-        },
-        { passive: false }
-      );
-
-    });
+      }
+    );
 
   </script>
 
