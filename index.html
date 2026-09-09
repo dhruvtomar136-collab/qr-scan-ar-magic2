@@ -1,77 +1,382 @@
+```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+
+  <title>AI AR Science Explorer - Human Heart</title>
+
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <!-- MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
   <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #000;
+      touch-action: none;
+    }
+
+    /* Information popup */
     #info-popup {
       display: none;
       position: fixed;
-      bottom: 20px;
       left: 50%;
+      bottom: 20px;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.85);
-      color: #fff;
-      padding: 16px 20px;
-      border-radius: 12px;
-      max-width: 85%;
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-      z-index: 999;
+      width: min(88%, 500px);
+      box-sizing: border-box;
+      background: rgba(0, 0, 0, 0.90);
+      color: white;
+      padding: 20px 45px 20px 20px;
+      border-radius: 16px;
+      z-index: 9999;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      line-height: 1.5;
     }
+
+    #info-title {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      color: #ff6677;
+    }
+
+    #info-text {
+      margin: 0;
+      font-size: 16px;
+    }
+
     #close-popup {
       position: absolute;
-      top: 6px;
+      top: 8px;
       right: 10px;
-      background: none;
       border: none;
-      color: #fff;
-      font-size: 18px;
+      background: transparent;
+      color: white;
+      font-size: 24px;
       cursor: pointer;
+      line-height: 1;
+    }
+
+    #zoom-help {
+      position: fixed;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9998;
+      background: rgba(0, 0, 0, 0.65);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      text-align: center;
+      pointer-events: none;
     }
   </style>
 </head>
+
 <body>
-  <a-scene mindar-image="imageTargetSrc: ./targets.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights: true" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-    <a-camera position="0 0 0" look-controls="enabled: false">
-      <a-cursor raycaster="objects: .clickable" cursor="rayOrigin: mouse; fuse: false"></a-cursor>
-    </a-camera>
-    <a-entity mindar-image-target="targetIndex: 0">
-      <!-- Replace with your actual 3D model URL -->
-      <a-gltf-model src="realistic_human_heart(1).glb" scale="0.5 0.5 0.5" position="0 0 0"></a-gltf-model>
-      <!-- Clickable hotspots for each heart part -->
-      <a-sphere class="clickable" data-info="Right Atrium: Receives deoxygenated blood from the body via the vena cava."
-        position="0.3 0.4 0.2" radius="0.05" color="
-#ff5566" opacity="0.6"></a-sphere>
-      <a-sphere class="clickable" data-info="Left Ventricle: Pumps oxygenated blood out to the body through the aorta."
-        position="-0.2 0.1 0.3" radius="0.05" color="
-#33aaff" opacity="0.6"></a-sphere>
-      <a-sphere class="clickable" data-info="Aortic Valve: Prevents backflow of blood into the left ventricle."
-        position="0 0.5 0" radius="0.05" color="
-#ffcc00" opacity="0.6"></a-sphere>
-    </a-entity>
-  </a-scene>
-  <!-- Info popup overlay -->
-  <div id="info-popup">
-    <button id="close-popup">✕</button>
-    <p id="info-text"></p>
+
+  <!-- On-screen instruction -->
+  <div id="zoom-help">
+    Tap the heart for information • Pinch to zoom
   </div>
+
+  <!-- AR Scene -->
+  <a-scene
+    mindar-image="
+      imageTargetSrc: ./targets.mind;
+      autoStart: true;
+      uiScanning: yes;
+      uiLoading: yes;
+      uiError: yes;
+    "
+    color-space="sRGB"
+    renderer="
+      colorManagement: true;
+      physicallyCorrectLights: true;
+      antialias: true;
+    "
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+    embedded
+  >
+
+    <!-- Camera -->
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false"
+      cursor="rayOrigin: mouse"
+      raycaster="objects: .clickable"
+    ></a-camera>
+
+    <!-- Image Target -->
+    <a-entity mindar-image-target="targetIndex: 0">
+
+      <!--
+        Wrapper around the heart.
+        We scale this wrapper for pinch / mouse-wheel zoom.
+      -->
+      <a-entity id="heart-group">
+
+        <!-- Main 3D Heart -->
+        <a-gltf-model
+          id="heart-model"
+          class="clickable"
+          src="./realistic_human_heart(1).glb"
+          position="0 0 0"
+          rotation="0 0 0"
+          scale="0.5 0.5 0.5"
+        ></a-gltf-model>
+
+        <!-- Optional visible information markers -->
+
+        <a-sphere
+          class="clickable heart-hotspot"
+          data-title="Right Atrium"
+          data-info="The right atrium receives deoxygenated blood from the body through the vena cava."
+          position="0.3 0.4 0.2"
+          radius="0.05"
+          color="#ff5566"
+          opacity="0.8"
+        ></a-sphere>
+
+        <a-sphere
+          class="clickable heart-hotspot"
+          data-title="Left Ventricle"
+          data-info="The left ventricle pumps oxygenated blood to the rest of the body through the aorta."
+          position="-0.2 0.1 0.3"
+          radius="0.05"
+          color="#33aaff"
+          opacity="0.8"
+        ></a-sphere>
+
+        <a-sphere
+          class="clickable heart-hotspot"
+          data-title="Aortic Valve"
+          data-info="The aortic valve helps prevent blood from flowing backward into the left ventricle."
+          position="0 0.5 0"
+          radius="0.05"
+          color="#ffcc00"
+          opacity="0.8"
+        ></a-sphere>
+
+      </a-entity>
+    </a-entity>
+
+  </a-scene>
+
+  <!-- Information Popup -->
+  <div id="info-popup">
+
+    <button id="close-popup" aria-label="Close">
+      &times;
+    </button>
+
+    <h2 id="info-title">Human Heart</h2>
+
+    <p id="info-text">
+      The heart is a muscular organ that pumps blood throughout the body.
+      It supplies oxygen and nutrients to tissues and removes carbon dioxide
+      and other wastes.
+    </p>
+
+  </div>
+
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const popup = document.getElementById('info-popup');
-      const infoText = document.getElementById('info-text');
-      const closeBtn = document.getElementById('close-popup');
-      document.querySelectorAll('.clickable').forEach(el => {
-        el.addEventListener('click', () => {
-          infoText.textContent = el.getAttribute('data-info');
-          popup.style.display = 'block';
+    document.addEventListener("DOMContentLoaded", () => {
+
+      const popup = document.getElementById("info-popup");
+      const infoTitle = document.getElementById("info-title");
+      const infoText = document.getElementById("info-text");
+      const closeButton = document.getElementById("close-popup");
+
+      const heartModel = document.getElementById("heart-model");
+      const heartGroup = document.getElementById("heart-group");
+
+      /*
+       * Zoom settings
+       */
+      let zoom = 1.0;
+
+      const MIN_ZOOM = 0.5;
+      const MAX_ZOOM = 2.5;
+
+      function applyZoom() {
+        heartGroup.object3D.scale.set(zoom, zoom, zoom);
+      }
+
+      /*
+       * Show information popup
+       */
+      function showPopup(title, text) {
+        infoTitle.textContent = title;
+        infoText.textContent = text;
+        popup.style.display = "block";
+      }
+
+      /*
+       * Close popup
+       */
+      closeButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        popup.style.display = "none";
+      });
+
+      /*
+       * Clicking / tapping the main heart
+       */
+      heartModel.addEventListener("click", () => {
+
+        showPopup(
+          "Human Heart",
+          "The human heart is a muscular organ that continuously pumps blood through the body. " +
+          "The right side receives deoxygenated blood, while the left side pumps oxygenated blood to the body."
+        );
+
+      });
+
+      /*
+       * Clicking the information hotspots
+       */
+      document.querySelectorAll(".heart-hotspot").forEach((hotspot) => {
+
+        hotspot.addEventListener("click", () => {
+
+          const title = hotspot.getAttribute("data-title");
+          const info = hotspot.getAttribute("data-info");
+
+          showPopup(title, info);
+
         });
+
       });
-      closeBtn.addEventListener('click', () => {
-        popup.style.display = 'none';
-      });
+
+      /*
+       * ---------------------------------------------------------
+       * MOBILE PINCH-TO-ZOOM
+       * ---------------------------------------------------------
+       */
+
+      let initialDistance = null;
+      let initialZoom = 1.0;
+
+      function getTouchDistance(touch1, touch2) {
+
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      document.addEventListener(
+        "touchstart",
+        (event) => {
+
+          if (event.touches.length === 2) {
+
+            initialDistance = getTouchDistance(
+              event.touches[0],
+              event.touches[1]
+            );
+
+            initialZoom = zoom;
+          }
+
+        },
+        { passive: false }
+      );
+
+      document.addEventListener(
+        "touchmove",
+        (event) => {
+
+          if (event.touches.length === 2 && initialDistance !== null) {
+
+            event.preventDefault();
+
+            const currentDistance = getTouchDistance(
+              event.touches[0],
+              event.touches[1]
+            );
+
+            const scaleFactor = currentDistance / initialDistance;
+
+            zoom = initialZoom * scaleFactor;
+
+            zoom = Math.max(
+              MIN_ZOOM,
+              Math.min(MAX_ZOOM, zoom)
+            );
+
+            applyZoom();
+          }
+
+        },
+        { passive: false }
+      );
+
+      document.addEventListener(
+        "touchend",
+        (event) => {
+
+          if (event.touches.length < 2) {
+            initialDistance = null;
+          }
+
+        },
+        { passive: false }
+      );
+
+      /*
+       * ---------------------------------------------------------
+       * DESKTOP MOUSE-WHEEL ZOOM
+       * ---------------------------------------------------------
+       */
+
+      window.addEventListener(
+        "wheel",
+        (event) => {
+
+          const zoomStep = 0.1;
+
+          if (event.deltaY < 0) {
+            zoom += zoomStep;
+          } else {
+            zoom -= zoomStep;
+          }
+
+          zoom = Math.max(
+            MIN_ZOOM,
+            Math.min(MAX_ZOOM, zoom)
+          );
+
+          applyZoom();
+
+        },
+        { passive: true }
+      );
+
+      /*
+       * Start at normal size
+       */
+      applyZoom();
+
     });
   </script>
+
 </body>
 </html>
+```
