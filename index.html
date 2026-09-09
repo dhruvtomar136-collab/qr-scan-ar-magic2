@@ -3,14 +3,15 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
+
+  <meta charset="utf-8">
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-  />
+  >
 
-  <title>Interactive AR Heart</title>
+  <title>AR Human Heart</title>
 
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
@@ -18,11 +19,8 @@
   <!-- MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-  <style>
 
-    /* =====================================================
-       BASIC PAGE
-    ===================================================== */
+  <style>
 
     * {
       box-sizing: border-box;
@@ -31,22 +29,27 @@
 
     html,
     body {
+
       margin: 0;
       padding: 0;
+
       width: 100%;
       height: 100%;
+
       overflow: hidden;
+
       background: transparent;
+
       font-family: Arial, sans-serif;
     }
 
 
     /* =====================================================
-       IMPORTANT CAMERA / AR FIX
-       Keep camera video behind the A-Frame canvas
+       CAMERA VIDEO
     ===================================================== */
 
     video {
+
       position: fixed !important;
 
       top: 0 !important;
@@ -63,7 +66,12 @@
     }
 
 
+    /* =====================================================
+       AR SCENE
+    ===================================================== */
+
     a-scene {
+
       position: fixed !important;
 
       top: 0 !important;
@@ -75,13 +83,14 @@
       margin: 0 !important;
       padding: 0 !important;
 
-      z-index: 1 !important;
-
       background: transparent !important;
+
+      z-index: 1 !important;
     }
 
 
     canvas {
+
       background: transparent !important;
     }
 
@@ -91,6 +100,7 @@
     ===================================================== */
 
     #loading-screen {
+
       position: fixed;
 
       inset: 0;
@@ -103,9 +113,11 @@
 
       flex-direction: column;
 
+      justify-content: center;
+
       align-items: center;
 
-      justify-content: center;
+      text-align: center;
 
       z-index: 10000;
 
@@ -114,6 +126,7 @@
 
 
     #loading-screen .spinner {
+
       width: 42px;
       height: 42px;
 
@@ -125,7 +138,7 @@
 
       animation: spin 0.9s linear infinite;
 
-      margin-bottom: 14px;
+      margin-bottom: 15px;
     }
 
 
@@ -138,17 +151,6 @@
     }
 
 
-    #loading-screen p {
-      font-size: 14px;
-
-      opacity: 0.85;
-
-      margin: 4px 0;
-
-      text-align: center;
-    }
-
-
     #loading-screen.hidden {
 
       opacity: 0;
@@ -157,15 +159,25 @@
     }
 
 
+    #loading-screen p {
+
+      margin: 5px;
+
+      font-size: 14px;
+
+      opacity: 0.85;
+    }
+
+
     /* =====================================================
-       CONTROL HINT
+       CONTROL MESSAGE
     ===================================================== */
 
     #control-hint {
 
       position: fixed;
 
-      top: 16px;
+      top: 15px;
 
       left: 50%;
 
@@ -175,13 +187,11 @@
 
       color: white;
 
-      padding: 9px 16px;
+      padding: 9px 15px;
 
-      border-radius: 22px;
+      border-radius: 20px;
 
       font-size: 13px;
-
-      text-align: center;
 
       z-index: 9000;
 
@@ -211,36 +221,32 @@
 
       position: fixed;
 
-      bottom: 24px;
-
       left: 50%;
 
-      transform: translateX(-50%) translateY(10px);
+      bottom: 22px;
 
-      background: rgba(15,18,22,0.95);
-
-      backdrop-filter: blur(8px);
-
-      color: white;
-
-      padding: 18px 46px 18px 18px;
-
-      border-radius: 15px;
+      transform:
+        translateX(-50%)
+        translateY(10px);
 
       width: 350px;
 
       max-width: 88%;
 
-      font-size: 15px;
+      padding: 18px 45px 18px 18px;
 
-      line-height: 1.5;
+      background: rgba(15,18,22,0.95);
 
-      box-shadow:
-        0 8px 25px rgba(0,0,0,0.45);
+      color: white;
 
-      z-index: 9999;
+      border-radius: 15px;
 
       border-left: 4px solid #ff5566;
+
+      box-shadow:
+        0 8px 25px rgba(0,0,0,0.5);
+
+      z-index: 9999;
 
       opacity: 0;
 
@@ -266,11 +272,11 @@
 
       margin: 0 0 7px 0;
 
+      color: #ff6677;
+
       font-size: 18px;
 
       font-weight: bold;
-
-      color: #ff6677;
     }
 
 
@@ -278,7 +284,9 @@
 
       margin: 0;
 
-      opacity: 0.94;
+      font-size: 15px;
+
+      line-height: 1.5;
     }
 
 
@@ -292,26 +300,17 @@
 
       border: none;
 
-      background: transparent;
+      background: none;
 
       color: white;
 
       font-size: 21px;
 
       cursor: pointer;
-
-      opacity: 0.75;
-
-      padding: 4px;
-    }
-
-
-    #close-popup:hover {
-
-      opacity: 1;
     }
 
   </style>
+
 </head>
 
 
@@ -319,8 +318,8 @@
 
 
   <!-- =====================================================
-       LOADING / CAMERA SCREEN
-  ====================================================== -->
+       LOADING SCREEN
+  ===================================================== -->
 
   <div id="loading-screen">
 
@@ -338,8 +337,8 @@
 
 
   <!-- =====================================================
-       USER CONTROLS
-  ====================================================== -->
+       CONTROLS
+  ===================================================== -->
 
   <div id="control-hint">
     Drag = Rotate • Pinch = Zoom • Tap = Learn
@@ -348,7 +347,7 @@
 
   <!-- =====================================================
        AR SCENE
-  ====================================================== -->
+  ===================================================== -->
 
   <a-scene
 
@@ -364,7 +363,6 @@
     renderer="
       alpha: true;
       colorManagement: true;
-      physicallyCorrectLights: true;
       antialias: true;
     "
 
@@ -377,8 +375,8 @@
 
 
     <!-- =================================================
-         HEART MODEL
-    ================================================== -->
+         MODEL ASSET
+    ================================================= -->
 
     <a-assets>
 
@@ -392,7 +390,7 @@
 
     <!-- =================================================
          CAMERA
-    ================================================== -->
+    ================================================= -->
 
     <a-camera
 
@@ -409,7 +407,7 @@
 
         raycaster="
           objects: .clickable;
-          far: 10;
+          far: 20;
         "
 
         position="0 0 -1"
@@ -420,35 +418,55 @@
 
 
     <!-- =================================================
-         TARGET IMAGE
-    ================================================== -->
+         LIGHTING
+         IMPORTANT: Makes the GLB visible
+    ================================================= -->
+
+    <a-light
+      type="ambient"
+      intensity="2">
+    </a-light>
+
+
+    <a-light
+      type="directional"
+      intensity="2"
+      position="2 4 3">
+    </a-light>
+
+
+    <a-light
+      type="directional"
+      intensity="1.5"
+      position="-3 2 1">
+    </a-light>
+
+
+    <!-- =================================================
+         MINDA R IMAGE TARGET
+         EVERYTHING INSIDE HERE IS REAL AR
+    ================================================= -->
 
     <a-entity
-
       id="target"
-
       mindar-image-target="targetIndex: 0"
     >
 
 
       <!-- =================================================
-           HEART WRAPPER
-           Rotation + Zoom
-      ================================================== -->
+           AR HEART
+      ================================================= -->
 
       <a-entity
-
         id="heart-wrapper"
 
-        scale="0.5 0.5 0.5"
+        position="0 0 0"
 
         rotation="0 0 0"
+
+        scale="0.5 0.5 0.5"
       >
 
-
-        <!-- =============================================
-             MAIN HEART
-        ============================================== -->
 
         <a-gltf-model
 
@@ -461,6 +479,8 @@
           position="0 0 0"
 
           rotation="0 0 0"
+
+          visible="true"
         >
         </a-gltf-model>
 
@@ -475,10 +495,7 @@
 
           data-title="Right Atrium"
 
-          data-info="
-          The right atrium receives deoxygenated blood
-          returning from the body through the vena cava.
-          "
+          data-info="The right atrium receives deoxygenated blood returning from the body through the vena cava."
 
           position="0.3 0.4 0.2"
 
@@ -486,17 +503,9 @@
 
           material="
             color:#ff5566;
-            opacity:0.75;
+            opacity:0.85;
             transparent:true;
             shader:flat;
-          "
-
-          animation__pulse="
-            property:scale;
-            dir:alternate;
-            dur:900;
-            loop:true;
-            to:1.15 1.15 1.15;
           "
         >
         </a-sphere>
@@ -512,10 +521,7 @@
 
           data-title="Left Ventricle"
 
-          data-info="
-          The left ventricle pumps oxygenated blood
-          out to the body through the aorta.
-          "
+          data-info="The left ventricle pumps oxygenated blood out to the body through the aorta."
 
           position="-0.2 0.1 0.3"
 
@@ -523,17 +529,9 @@
 
           material="
             color:#33aaff;
-            opacity:0.75;
+            opacity:0.85;
             transparent:true;
             shader:flat;
-          "
-
-          animation__pulse="
-            property:scale;
-            dir:alternate;
-            dur:900;
-            loop:true;
-            to:1.15 1.15 1.15;
           "
         >
         </a-sphere>
@@ -549,10 +547,7 @@
 
           data-title="Aortic Valve"
 
-          data-info="
-          The aortic valve helps prevent blood from
-          flowing backward into the left ventricle.
-          "
+          data-info="The aortic valve helps prevent blood from flowing backward into the left ventricle."
 
           position="0 0.5 0"
 
@@ -560,17 +555,9 @@
 
           material="
             color:#ffcc00;
-            opacity:0.75;
+            opacity:0.85;
             transparent:true;
             shader:flat;
-          "
-
-          animation__pulse="
-            property:scale;
-            dir:alternate;
-            dur:900;
-            loop:true;
-            to:1.15 1.15 1.15;
           "
         >
         </a-sphere>
@@ -585,22 +572,17 @@
 
   <!-- =====================================================
        INFORMATION POPUP
-  ====================================================== -->
+  ===================================================== -->
 
   <div id="info-popup">
 
-    <button
-      id="close-popup"
-      aria-label="Close"
-    >
+    <button id="close-popup">
       ✕
     </button>
-
 
     <h2 id="info-title">
       Human Heart
     </h2>
-
 
     <p id="info-text">
       The human heart is a muscular organ that pumps
@@ -612,7 +594,7 @@
 
   <!-- =====================================================
        JAVASCRIPT
-  ====================================================== -->
+  ===================================================== -->
 
   <script>
 
@@ -621,49 +603,49 @@
       () => {
 
 
-        /* =================================================
-           GET ELEMENTS
+        /* ================================================
+           ELEMENTS
         ================================================= */
 
-        const sceneEl =
+        const scene =
           document.querySelector("a-scene");
 
-        const loadingScreen =
+        const loading =
           document.getElementById("loading-screen");
 
         const loadingText =
           document.getElementById("loading-text");
 
-        const controlHint =
+        const target =
+          document.getElementById("target");
+
+        const heart =
+          document.getElementById("heart-model");
+
+        const wrapper =
+          document.getElementById("heart-wrapper");
+
+        const hint =
           document.getElementById("control-hint");
 
         const popup =
           document.getElementById("info-popup");
 
-        const infoTitle =
+        const title =
           document.getElementById("info-title");
 
-        const infoText =
+        const text =
           document.getElementById("info-text");
 
-        const closeBtn =
+        const close =
           document.getElementById("close-popup");
 
-        const targetEntity =
-          document.getElementById("target");
 
-        const heartWrapper =
-          document.getElementById("heart-wrapper");
-
-        const heartModel =
-          document.getElementById("heart-model");
-
-
-        /* =================================================
-           CAMERA START
+        /* ================================================
+           CAMERA READY
         ================================================= */
 
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "renderstart",
           () => {
 
@@ -674,22 +656,20 @@
         );
 
 
-        /* =================================================
-           AR LOADED
+        /* ================================================
+           SCENE LOADED
         ================================================= */
 
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "loaded",
           () => {
 
-            loadingScreen.classList.add(
-              "hidden"
-            );
+            loading.classList.add("hidden");
 
             setTimeout(
               () => {
 
-                loadingScreen.style.display =
+                loading.style.display =
                   "none";
 
               },
@@ -700,21 +680,19 @@
         );
 
 
-        /* =================================================
+        /* ================================================
            FALLBACK
         ================================================= */
 
         setTimeout(
           () => {
 
-            loadingScreen.classList.add(
-              "hidden"
-            );
+            loading.classList.add("hidden");
 
             setTimeout(
               () => {
 
-                loadingScreen.style.display =
+                loading.style.display =
                   "none";
 
               },
@@ -726,22 +704,24 @@
         );
 
 
-        /* =================================================
+        /* ================================================
            TARGET FOUND
         ================================================= */
 
-        targetEntity.addEventListener(
+        target.addEventListener(
           "targetFound",
           () => {
 
-            controlHint.classList.add(
-              "show"
+            console.log(
+              "AR TARGET FOUND"
             );
+
+            hint.classList.add("show");
 
             setTimeout(
               () => {
 
-                controlHint.classList.remove(
+                hint.classList.remove(
                   "show"
                 );
 
@@ -753,13 +733,17 @@
         );
 
 
-        /* =================================================
+        /* ================================================
            TARGET LOST
         ================================================= */
 
-        targetEntity.addEventListener(
+        target.addEventListener(
           "targetLost",
           () => {
+
+            console.log(
+              "AR TARGET LOST"
+            );
 
             popup.classList.remove(
               "visible"
@@ -769,76 +753,57 @@
         );
 
 
-        /* =================================================
-           POPUP FUNCTION
+        /* ================================================
+           HEART CLICK
         ================================================= */
 
-        function showInfo(
-          title,
-          text
-        ) {
-
-          infoTitle.textContent =
-            title;
-
-          infoText.textContent =
-            text.trim();
-
-          popup.classList.add(
-            "visible"
-          );
-
-        }
-
-
-        /* =================================================
-           TAP MAIN HEART
-        ================================================= */
-
-        heartModel.addEventListener(
+        heart.addEventListener(
           "click",
           () => {
 
-            showInfo(
-              "❤️ Human Heart",
+            title.textContent =
+              "❤️ Human Heart";
 
+            text.textContent =
               "The human heart is a muscular organ " +
               "that pumps blood throughout the body. " +
               "The right side receives deoxygenated " +
               "blood, while the left side pumps " +
-              "oxygenated blood to the body."
+              "oxygenated blood to the body.";
+
+            popup.classList.add(
+              "visible"
             );
 
           }
         );
 
 
-        /* =================================================
-           TAP HOTSPOTS
+        /* ================================================
+           HOTSPOT CLICK
         ================================================= */
 
         document
           .querySelectorAll(".hotspot")
           .forEach(
-            (hotspot) => {
+            (spot) => {
 
-              hotspot.addEventListener(
+              spot.addEventListener(
                 "click",
                 () => {
 
-                  const title =
-                    hotspot.getAttribute(
+                  title.textContent =
+                    spot.getAttribute(
                       "data-title"
                     );
 
-                  const info =
-                    hotspot.getAttribute(
+                  text.textContent =
+                    spot.getAttribute(
                       "data-info"
                     );
 
-                  showInfo(
-                    title,
-                    info
+                  popup.classList.add(
+                    "visible"
                   );
 
                 }
@@ -848,15 +813,13 @@
           );
 
 
-        /* =================================================
-           CLOSE POPUP
+        /* ================================================
+           CLOSE
         ================================================= */
 
-        closeBtn.addEventListener(
+        close.addEventListener(
           "click",
-          (event) => {
-
-            event.stopPropagation();
+          () => {
 
             popup.classList.remove(
               "visible"
@@ -866,7 +829,7 @@
         );
 
 
-        /* =================================================
+        /* ================================================
            ROTATION
         ================================================= */
 
@@ -875,21 +838,15 @@
         let lastX = 0;
         let lastY = 0;
 
-        let rotationX = 0;
-        let rotationY = 0;
+        let rotateX = 0;
+        let rotateY = 0;
 
 
-        const MIN_ROTATION_X = -60;
-        const MAX_ROTATION_X = 60;
-
-
-        /* =================================================
-           ONE FINGER START
-        ================================================= */
-
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "touchstart",
           (event) => {
+
+            /* One finger = rotate */
 
             if (
               event.touches.length === 1
@@ -906,17 +863,11 @@
             }
 
           },
-          {
-            passive: true
-          }
+          { passive: true }
         );
 
 
-        /* =================================================
-           ONE FINGER MOVE = ROTATE
-        ================================================= */
-
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "touchmove",
           (event) => {
 
@@ -925,96 +876,80 @@
               event.touches.length === 1
             ) {
 
-              const currentX =
+              const x =
                 event.touches[0].clientX;
 
-              const currentY =
+              const y =
                 event.touches[0].clientY;
 
 
-              const deltaX =
-                currentX - lastX;
+              const dx =
+                x - lastX;
 
-              const deltaY =
-                currentY - lastY;
-
-
-              rotationY +=
-                deltaX * 0.6;
-
-              rotationX -=
-                deltaY * 0.6;
+              const dy =
+                y - lastY;
 
 
-              rotationX =
+              rotateY +=
+                dx * 0.6;
+
+              rotateX -=
+                dy * 0.6;
+
+
+              rotateX =
                 Math.max(
-                  MIN_ROTATION_X,
-
+                  -60,
                   Math.min(
-                    MAX_ROTATION_X,
-                    rotationX
+                    60,
+                    rotateX
                   )
                 );
 
 
-              heartWrapper.setAttribute(
+              wrapper.setAttribute(
                 "rotation",
-
-                `${rotationX} ${rotationY} 0`
+                `${rotateX} ${rotateY} 0`
               );
 
 
-              lastX = currentX;
-
-              lastY = currentY;
+              lastX = x;
+              lastY = y;
 
             }
 
           },
-          {
-            passive: true
-          }
+          { passive: true }
         );
 
 
-        /* =================================================
-           TOUCH END
-        ================================================= */
-
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "touchend",
-          () => {
+          (event) => {
 
-            rotating = false;
+            if (
+              event.touches.length === 0
+            ) {
+
+              rotating = false;
+
+            }
 
           },
-          {
-            passive: true
-          }
+          { passive: true }
         );
 
 
-        /* =================================================
+        /* ================================================
            PINCH ZOOM
         ================================================= */
 
-        let initialPinchDistance =
-          null;
+        let pinchStart = null;
 
-        let currentScale =
-          0.5;
+        let currentScale = 0.5;
 
 
-        const MIN_SCALE =
-          0.15;
-
-        const MAX_SCALE =
-          2.5;
-
-
-        function getPinchDistance(
-          touches
-        ) {
+        function distance(touches) {
 
           const dx =
             touches[0].clientX -
@@ -1032,11 +967,7 @@
         }
 
 
-        /* =================================================
-           TWO FINGER START
-        ================================================= */
-
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "touchstart",
           (event) => {
 
@@ -1044,92 +975,76 @@
               event.touches.length === 2
             ) {
 
-              initialPinchDistance =
-                getPinchDistance(
+              pinchStart =
+                distance(
                   event.touches
                 );
 
             }
 
           },
-          {
-            passive: true
-          }
+          { passive: true }
         );
 
 
-        /* =================================================
-           TWO FINGER MOVE = ZOOM
-        ================================================= */
-
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "touchmove",
           (event) => {
 
             if (
               event.touches.length === 2 &&
-              initialPinchDistance
+              pinchStart
             ) {
 
-              const newDistance =
-                getPinchDistance(
+              const now =
+                distance(
                   event.touches
                 );
 
 
               const ratio =
-                newDistance /
-                initialPinchDistance;
+                now / pinchStart;
 
 
-              let newScale =
+              let scale =
                 currentScale * ratio;
 
 
-              newScale =
-                Math.min(
-                  MAX_SCALE,
-
-                  Math.max(
-                    MIN_SCALE,
-                    newScale
+              scale =
+                Math.max(
+                  0.15,
+                  Math.min(
+                    2.5,
+                    scale
                   )
                 );
 
 
-              heartWrapper.setAttribute(
+              wrapper.setAttribute(
                 "scale",
-
-                `${newScale} ${newScale} ${newScale}`
+                `${scale} ${scale} ${scale}`
               );
 
             }
 
           },
-          {
-            passive: true
-          }
+          { passive: true }
         );
 
 
-        /* =================================================
-           PINCH END
-        ================================================= */
-
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "touchend",
           (event) => {
 
             if (
               event.touches.length < 2 &&
-              initialPinchDistance
+              pinchStart
             ) {
 
               const scale =
-                heartWrapper.getAttribute(
+                wrapper.getAttribute(
                   "scale"
                 );
-
 
               if (scale) {
 
@@ -1138,39 +1053,31 @@
 
               }
 
-
-              initialPinchDistance =
+              pinchStart =
                 null;
 
             }
 
           },
-          {
-            passive: true
-          }
+          { passive: true }
         );
 
 
-        /* =================================================
+        /* ================================================
            DESKTOP MOUSE ROTATION
         ================================================= */
 
-        let mouseDown =
-          false;
+        let mouseDown = false;
 
-        let mouseX =
-          0;
-
-        let mouseY =
-          0;
+        let mouseX = 0;
+        let mouseY = 0;
 
 
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "mousedown",
           (event) => {
 
-            mouseDown =
-              true;
+            mouseDown = true;
 
             mouseX =
               event.clientX;
@@ -1182,7 +1089,7 @@
         );
 
 
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "mousemove",
           (event) => {
 
@@ -1191,37 +1098,33 @@
             }
 
 
-            const deltaX =
-              event.clientX -
-              mouseX;
+            const dx =
+              event.clientX - mouseX;
 
-            const deltaY =
-              event.clientY -
-              mouseY;
+            const dy =
+              event.clientY - mouseY;
 
 
-            rotationY +=
-              deltaX * 0.6;
+            rotateY +=
+              dx * 0.6;
 
-            rotationX -=
-              deltaY * 0.6;
+            rotateX -=
+              dy * 0.6;
 
 
-            rotationX =
+            rotateX =
               Math.max(
-                MIN_ROTATION_X,
-
+                -60,
                 Math.min(
-                  MAX_ROTATION_X,
-                  rotationX
+                  60,
+                  rotateX
                 )
               );
 
 
-            heartWrapper.setAttribute(
+            wrapper.setAttribute(
               "rotation",
-
-              `${rotationX} ${rotationY} 0`
+              `${rotateX} ${rotateY} 0`
             );
 
 
@@ -1239,18 +1142,17 @@
           "mouseup",
           () => {
 
-            mouseDown =
-              false;
+            mouseDown = false;
 
           }
         );
 
 
-        /* =================================================
-           DESKTOP MOUSE WHEEL ZOOM
+        /* ================================================
+           MOUSE WHEEL ZOOM
         ================================================= */
 
-        sceneEl.addEventListener(
+        scene.addEventListener(
           "wheel",
           (event) => {
 
@@ -1264,33 +1166,31 @@
 
 
             currentScale =
-              Math.min(
-                MAX_SCALE,
-
-                Math.max(
-                  MIN_SCALE,
+              Math.max(
+                0.15,
+                Math.min(
+                  2.5,
                   currentScale * factor
                 )
               );
 
 
-            heartWrapper.setAttribute(
+            wrapper.setAttribute(
               "scale",
-
               `${currentScale} ${currentScale} ${currentScale}`
             );
 
           },
-          {
-            passive: false
-          }
+          { passive: false }
         );
 
       }
+
     );
 
   </script>
 
 </body>
+
 </html>
 ```
